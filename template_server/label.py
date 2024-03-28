@@ -52,7 +52,7 @@ def replace_text_in_file(input_path, target_file_name, replacements, output_path
 def convert_odt_to_png(input_path, output_path):
     subprocess.run(['soffice', '--headless', '--convert-to', 'png', input_path, '--outdir', output_path])
 
-def today(offset=0):
+def today(offset=0): 
     return (datetime.today() + timedelta(days=offset)).strftime("%Y-%m-%d")
 
 def print_today_label(path=None):
@@ -75,7 +75,7 @@ def create_label(filename="AVE MAYO.odt", folder=None, date_offset=0):
                          {'{elaboracion}': today(date_offset), 
                           '{vencimiento}': today(2 + date_offset)}, output_filename)
     convert_odt_to_png(output_filename, output_png_folder)
-    print_today_label(output_png_path)
+    # print_today_label(output_png_path)
     os.remove(output_filename)
 
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # commmand line interface
     import argparse
     parser = argparse.ArgumentParser(description='Create a label.')
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers(dest="command", help='sub-command help')
 
     create_label_parser = subparsers.add_parser('create', help='Create a label.')
     create_label_parser.add_argument('filename', type=str, help='The name of the file to use as a template.')
