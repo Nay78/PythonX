@@ -5,6 +5,7 @@ import io
 from datetime import datetime, timedelta
 import os
 import subprocess
+import time
 
 
 def edit_zip_file(input_path, target_file_name, edit_function, output_path='edited_archive.zip'):
@@ -55,10 +56,13 @@ def convert_odt_to_png(input_path, output_path):
 def today(offset=0): 
     return (datetime.today() + timedelta(days=offset)).strftime("%Y-%m-%d")
 
-def print_today_label(path=None):
+def print_today_label(path=None, n=1, wait=2, brother_ql_path="brother_ql", printer_ip="192.168.1.210:9100"):
     path = path or os.path.join(os.path.expanduser("~"), "Templates", "Output", f"{today()}.png")
-    command = f"brother_ql --backend network --model QL-810W --printer tcp://192.168.1.210:9100 print --label 62 --threshold 50 {path}"
-    return subprocess.run(command.split())
+    command = f"{brother_ql_path} --backend network --model QL-810W --printer tcp://{printer_ip} print --label 62 -d {path}"
+    command = command.split()
+    for _ in range(n):
+        subprocess.run(command)
+        time.sleep(wait)
 
 def create_label(filename="AVE MAYO.odt", folder=None, date_offset=0):
     folder = folder or os.path.join(os.path.expanduser("~"), "Templates")
@@ -91,7 +95,11 @@ if __name__ == "__main__":
     create_label_parser.add_argument('--date-offset', type=int, default=0, help='Today is the default, offset.')
 
     print_label_parser = subparsers.add_parser('print', help='Create a label.')
-    create_label_parser.add_argument('--path', type=str, default=os.path.join(os.path.expanduser("~"), "Templates", "Output", f"{today()}.png"), help='path')
+    print_label_parser.add_argument('--path', type=str, default=os.path.join(os.path.expanduser("~"), "Templates", "Output", f"{today()}.png"), help='path')
+    print_label_parser.add_argument('--qty', type=str, default=1, help='path')
+    print_label_parser.add_argument('--wait', type=str, default=2, help='path')
+    print_label_parser.add_argument('--brother_ql_path', default="brother_ql", type=str, help='path')
+    print_label_parser.add_argument('--printer_ip', default="192.168.1.210:9100", type=str, help='path')
 
     args = parser.parse_args()
     if args.command == "create":
@@ -99,5 +107,4 @@ if __name__ == "__main__":
         create_label(args.filename, args.folder, date_offset=args.date_offset)
     elif args.command == "print":
         print("Printing label from path", args.path)
-        print_today_label(args.path)
-
+        print_today_label(args.path, qty=int(args.qty), wait=float(args.wait), brother_ql_path=args.brother_ql_path, printer_ip=args.printer_ip)
