@@ -1,10 +1,16 @@
 const express = require("express");
 const { exec } = require("child_process");
+const args = process.argv.slice(2);
 
 const app = express();
-const port = 2999;
+const port = args[0] || 2999;
 
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ message: "Hello World" });
+  return;
+});
 
 app.post("/run-script", (req, res) => {
   const { script } = req.body;
