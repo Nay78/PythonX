@@ -109,7 +109,7 @@ app.get("/print_label2", (req, res) => {
   //   res.json({ output: query });
 });
 
-app.get("/print_label", (req, res) => {
+app.get("/print_label", async (req, res) => {
   if (printing) {
     res.json({ output: "Already printing" });
     return;
@@ -136,7 +136,8 @@ app.get("/print_label", (req, res) => {
       console.log(`Script output: ${stdout}`);
       // res.json({ output: stdout });
     });
-    setTimeout(() => {}, wait * 2000);
+    await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+    // setTimeout(() => {}, wait * 2000);
   }
 
   res.json({ output: "success" });
