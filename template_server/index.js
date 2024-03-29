@@ -18,10 +18,26 @@ function today(offset = 0) {
   return `${year}-${month}-${day}`;
 }
 
+function fetchStatus() {
+  const command = `${brother_ql_path} --backend network --model QL-810W --printer tcp://${printer_ip} status`;
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing script: ${error.message}`);
+      return;
+    }
+
+    console.log(`Script output: ${stdout}`);
+    return stdout;
+  });
+}
+
+// START
+let printing = false;
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.json({ message: "Hello World" });
+  res.json({ status: fetchStatus() });
   return;
 });
 
@@ -94,6 +110,11 @@ app.get("/print_label2", (req, res) => {
 });
 
 app.get("/print_label", (req, res) => {
+  if (printing) {
+    res.json({ output: "Already printing" });
+    return;
+  }
+  printing = true;
   const query = req.query;
   console.log(query);
   const qty = query.qty || 0;
@@ -115,10 +136,11 @@ app.get("/print_label", (req, res) => {
       console.log(`Script output: ${stdout}`);
       // res.json({ output: stdout });
     });
-    setTimeout(() => {}, wait * 1000);
+    setTimeout(() => {}, wait * 2000);
   }
 
   res.json({ output: "success" });
+  printing = false;
   return;
 
   //   res.json({ output: query });
