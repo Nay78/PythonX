@@ -140,7 +140,7 @@ app.get("/print_label", async (req, res) => {
     // setTimeout(() => {}, wait * 2000);
   }
 
-  res.json({ output: "success" });
+  res.json({ output: "success", wait: wait * 1000, qty: qty, filepath: filepath });
   printing = false;
   return;
 
