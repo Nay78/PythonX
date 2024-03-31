@@ -8,7 +8,8 @@ const WebSocket = require("ws");
 const app = express();
 const port = args[0] || 2999;
 const brother_ql_path = args[1];
-const printer_ip = args[2];
+const printer_address = args[2];
+const printer_ip = printer_address.split(":")[0];
 
 function today(offset = 0) {
   const today = new Date();
@@ -128,7 +129,7 @@ app.get("/print_label", async (req, res) => {
   const wait = query.wait || 2;
   const filepath = query.file || path.join(os.homedir(), "Templates", "Output", `${today()}.png`);
 
-  const command = `${brother_ql_path} --backend network --model QL-810W --printer tcp://${printer_ip} print --label 62 -d ${filepath}`;
+  const command = `${brother_ql_path} --backend network --model QL-810W --printer tcp://${printer_address} print --label 62 -d ${filepath}`;
   // const command = `python label.py print --brother ${file}`;
   console.log("command", command);
 
