@@ -81,8 +81,9 @@ app.get("/", (req, res) => {
 
 app.get("/status", async (req, res) => {
   // fetchAndExtractPrintingStatus(`http://${printer_ip}/status`)
-  const status = await fetchAndExtractPrintingStatus(`http://${printer_ip}/general/monitor.html`);
-  res.json({ status });
+  const url = `http://${printer_ip}/general/monitor.html`;
+  const status = await fetchAndExtractPrintingStatus(url);
+  res.json({ status, url });
   return;
 });
 
