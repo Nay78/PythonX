@@ -10,6 +10,14 @@ const port = args[0] || 2999;
 const brother_ql_path = args[1];
 const printer_ip = args[2];
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, "public")));
+
+// Define a route to serve the HTML file
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 function today(offset = 0) {
   const today = new Date();
   today.setDate(today.getDate() + offset);
@@ -19,42 +27,21 @@ function today(offset = 0) {
   return `${year}-${month}-${day}`;
 }
 
-async function fetchAndExtractPrintingStatus(url) {
-  try {
-    // Fetch the response
-    const response = await fetch(url);
-
-    // Check if the request was successful
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+function fetchStatus() {
+  const command = `${brother_ql_path} --backend network --model QL-810W --printer tcp://${printer_ip} status`;
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing script: ${error.message}`);
+      return;
     }
 
-    // Read the response text
-    const responseText = await response.text();
-
-    // Parse the XML response
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(responseText, "text/xml");
-
-    // Find the element with class "moniOk"
-    const printingStatusElement = xmlDoc.querySelector(".moniOk");
-
-    // Extract the status text
-    if (printingStatusElement) {
-      return printingStatusElement.textContent.trim();
-    } else {
-      throw new Error("Printing status not found in the response");
-    }
-  } catch (error) {
-    console.error("Error:", error.message, url);
-  }
+    console.log(`Script output: ${stdout}`);
+    return stdout;
+  });
 }
 
 // START
 let printing = false;
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, "public")));
 
 app.use(express.json());
 
@@ -71,19 +58,7 @@ wss.on("connection", (ws) => {
     // ... handle message here ...
   });
 
-  ws.send("Hello from server ");
-});
-
-// Define a route to serve the HTML file
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.get("/status", async (req, res) => {
-  // fetchAndExtractPrintingStatus(`http://${printer_ip}/status`)
-  const status = await fetchAndExtractPrintingStatus(`http://${printer_ip}/general/monitor.html`);
-  res.json({ status });
-  return;
+  ws.send("Hello from server");
 });
 
 app.get("/create_label", (req, res) => {
@@ -120,6 +95,8 @@ app.get("/print_label", async (req, res) => {
     res.json({ output: "Already printing" });
     return;
   }
+  //   ws.send("Hello from server2");
+
   printing = true;
   const query = req.query;
   console.log(query);
@@ -135,7 +112,7 @@ app.get("/print_label", async (req, res) => {
     exec(command, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing script: ${error.message}`);
-        res.status(500).json({ error: "Error executing script", output: error.message });
+        res.status(500).json({ error: "Error executing script", message: error.message });
         return;
       }
 
@@ -152,3 +129,7 @@ app.get("/print_label", async (req, res) => {
 
   //   res.json({ output: query });
 });
+
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });

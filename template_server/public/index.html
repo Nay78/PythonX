@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Client</title>
+  </head>
+  <body>
+    <h1>WebSocket Client</h1>
+    <div>
+      <label for="loops">Number of Loops:</label>
+      <input type="number" id="loops" />
+    </div>
+
+    <button id="startButton">Start Loop</button>
+    <button id="stopButton">Stop Loop</button>
+
+    <div id="output"></div>
+
+    <script>
+      async function req() {
+        const loops = parseInt(document.getElementById("loops").value);
+        for (let i = 0; i < loops; i++) {
+          const command = "/print_label?qty=1";
+          const response = await fetch(command);
+          const data = await response.json();
+          outputDiv.innerHTML += `<p>${data}</p>`;
+        }
+      }
+
+      const ws = new WebSocket("ws://localhost:2999"); // Adjust the WebSocket URL according to your server configuration
+
+      ws.onopen = function () {
+        outputDiv.innerHTML += "<p>WebSocket connected</p>";
+      };
+
+      ws.onmessage = function (event) {
+        outputDiv.innerHTML += `<p>${event.data}</p>`;
+      };
+
+      ws.onerror = function (error) {
+        console.error("WebSocket error:", error);
+      };
+
+      ws.onclose = function () {
+        console.log("WebSocket closed");
+      };
+    </script>
+  </body>
+</html>
