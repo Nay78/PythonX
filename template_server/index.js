@@ -4,6 +4,7 @@ const args = process.argv.slice(2);
 const path = require("path");
 const os = require("os");
 const WebSocket = require("ws");
+const fetch = require("node-fetch");
 
 const app = express();
 const port = args[0] || 2999;
