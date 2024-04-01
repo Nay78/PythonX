@@ -10,7 +10,7 @@ const app = express();
 const port = args[0] || 2999;
 const brother_ql_path = args[1];
 const printer_address = args[2];
-const printer_ip = printer_address.split(":")[0];
+const printer_ip = String(printer_address).split(":")[0];
 
 function today(offset = 0) {
   const today = new Date();
