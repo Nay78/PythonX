@@ -5,6 +5,7 @@ const path = require("path");
 const os = require("os");
 const WebSocket = require("ws");
 const fetch = require("node-fetch");
+const { DOMParser } = require("xmldom");
 
 const app = express();
 const port = args[0] || 2999;
@@ -33,13 +34,26 @@ async function fetchAndExtractPrintingStatus(url) {
 
     // Read the response text
     const responseText = await response.text();
+    // console.log("Response text:", responseText);
 
     // Parse the XML response
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(responseText, "text/xml");
 
+    // Check for parse errors
+    const parseErrors = xmlDoc.getElementsByTagName("parsererror");
+    if (parseErrors.length > 0) {
+      throw new Error("XML parsing error: " + parseErrors[0].textContent);
+    }
+
+    const printingStatusElement = xmlDoc.getElementsByClassName("moniOk")[0];
+    // const xmlDoc = parser.parseFromString("<foo>text</foo>", "text/xml");
+
     // Find the element with class "moniOk"
-    const printingStatusElement = xmlDoc.querySelector(".moniOk");
+    // const printingStatusElement = xmlDoc.querySelector(".moniOk");
+    // xmlDoc.querySelectorAll(".moniOk").forEach((el) => {
+    //   console.log(el);
+    // });
 
     // Extract the status text
     if (printingStatusElement) {
@@ -48,7 +62,7 @@ async function fetchAndExtractPrintingStatus(url) {
       throw new Error("Printing status not found in the response");
     }
   } catch (error) {
-    console.error("Error:", error.message, url);
+    console.error("Error:", error, url);
   }
 }
 
@@ -85,7 +99,8 @@ app.get("/status", async (req, res) => {
   // fetchAndExtractPrintingStatus(`http://${printer_ip}/status`)
   const url = `http://${printer_ip}/general/monitor.html`;
   const status = await fetchAndExtractPrintingStatus(url);
-  res.json({ status, url });
+  // res.json({ status, url });
+  res.send(status);
   return;
 });
 
